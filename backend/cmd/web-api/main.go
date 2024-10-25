@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vitor-chaves-lima/stop/cmd/web-api/controller"
 	"github.com/vitor-chaves-lima/stop/cmd/web-api/middleware"
+	"github.com/vitor-chaves-lima/stop/config"
 )
 
 var APIVersions = []string{"v1"}
@@ -41,6 +42,9 @@ func setupRoutes(apiRouter *gin.RouterGroup, apiControllers *APIControllers) {
 }
 
 func main() {
+	apiConfig := config.LoadConfig()
+	_ = apiConfig
+
 	r := gin.Default()
 	apiRouter := r.Group("/api")
 

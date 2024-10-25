@@ -1,0 +1,7 @@
+services:
+  database:
+    extends:
+      file: docker-compose.base.yaml
+      service: database
+    ports:
+      - "27017:27017"
