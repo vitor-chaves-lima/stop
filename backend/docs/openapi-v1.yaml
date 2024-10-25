@@ -5,8 +5,15 @@ info:
   description: API for managing the Stop Game.
   license:
     name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
+
+servers:
+  - url: localhost:{port}/api/v1
+    description: Localhost
+    variables:
+      port:
+        default: '3000'
 
 tags:
   - name: Game
