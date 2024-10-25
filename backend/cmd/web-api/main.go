@@ -1,17 +1,32 @@
 package main
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"github.com/vitor-chaves-lima/stop/cmd/web-api/controller"
 	"github.com/vitor-chaves-lima/stop/cmd/web-api/middleware"
 	"github.com/vitor-chaves-lima/stop/config"
+	"github.com/vitor-chaves-lima/stop/internal/data/database"
 )
 
 var APIVersions = []string{"v1"}
 
+type Dependencies struct {
+	mongoDBManager *database.MongoDBManager
+}
+
 type APIControllers struct {
 	docs *controller.Docs
 	game *controller.Game
+}
+
+func setupDependencies(appConfig *config.Config) *Dependencies {
+	mongoDbManager := database.NewMongoDBManager(context.Background(), appConfig.Database)
+
+	return &Dependencies{
+		mongoDBManager: mongoDbManager,
+	}
 }
 
 func setupControllers() *APIControllers {
@@ -42,14 +57,16 @@ func setupRoutes(apiRouter *gin.RouterGroup, apiControllers *APIControllers) {
 }
 
 func main() {
-	apiConfig := config.LoadConfig()
-	_ = apiConfig
+	appConfig := config.LoadConfig()
 
 	r := gin.Default()
 	apiRouter := r.Group("/api")
 
 	apiRouter.Use(middleware.ErrorHandler)
 	apiRouter.Use(middleware.ResponseFormatter)
+
+	dependencies := setupDependencies(appConfig)
+	defer dependencies.mongoDBManager.Disconnect()
 
 	apiControllers := setupControllers()
 	setupRoutes(apiRouter, apiControllers)
