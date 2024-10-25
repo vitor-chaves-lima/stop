@@ -1,27 +1,57 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/vitor-chaves-lima/stop/cmd/web-api/controller"
+	"github.com/vitor-chaves-lima/stop/cmd/web-api/middleware"
 )
 
 var APIVersions = []string{"v1"}
 
-func main() {
+type APIControllers struct {
+	docs *controller.Docs
+	game *controller.Game
+}
+
+func setupControllers() *APIControllers {
 	openAPIDocuments, err := loadOpenAPIDocuments()
 	if err != nil {
 		panic(err)
 	}
 
-	r := gin.Default()
+	docsController := controller.NewDocsController(openAPIDocuments)
+	gameController := controller.NewGameController()
 
-	apiRouter := r.Group("/api")
-	{
-		apiRouter.GET("/docs/:v/openapi.yaml", func(c *gin.Context) {
-			c.String(http.StatusOK, *openAPIDocuments[c.Param("v")])
-		})
+	apiControllers := &APIControllers{
+		docs: docsController,
+		game: gameController,
 	}
 
-	r.Run()
+	return apiControllers
+}
+
+func setupRoutes(apiRouter *gin.RouterGroup, apiControllers *APIControllers) {
+	apiRouter.GET("/docs/:v/openapi.yaml", apiControllers.docs.HandleOpenAPIYAML)
+
+	v1Router := apiRouter.Group("/v1")
+	{
+		v1Router.GET("/game/categories", apiControllers.game.HandleGetCategories)
+		v1Router.POST("/game/session", apiControllers.game.HandleCreateSession)
+	}
+}
+
+func main() {
+	r := gin.Default()
+	apiRouter := r.Group("/api")
+
+	apiRouter.Use(middleware.ErrorHandler)
+	apiRouter.Use(middleware.ResponseFormatter)
+
+	apiControllers := setupControllers()
+	setupRoutes(apiRouter, apiControllers)
+
+	err := r.Run()
+	if err != nil {
+		return
+	}
 }
