@@ -19,7 +19,7 @@ func (ctr *Game) HandleGetCategories(c *gin.Context) {
 	}{Page: 0, Limit: 10})
 
 	if err != nil {
-		//context.SetResponse(c, err.StatusCode, nil, nil, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

@@ -19,16 +19,16 @@ func ErrorHandler(c *gin.Context) {
 	if len(c.Errors) > 0 {
 		formattedErrors := make([]apiError, len(c.Errors))
 
-		for _, err := range c.Errors {
+		for i, err := range c.Errors {
 			var applicationError *logic.Error
 			if errors.As(err, &applicationError) {
-				formattedErrors = append(formattedErrors, apiError{
+				formattedErrors[i] = apiError{
 					Code:   applicationError.Code,
 					Title:  "TODO",
 					Detail: applicationError.Error(),
-				})
+				}
 
-				return
+				break
 			}
 
 			c.Status(c.Writer.Status())
