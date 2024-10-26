@@ -11,3 +11,11 @@ func ToCategoryModel(categoryEntity *entities.Category) *Category {
 		ID: categoryEntity.ID,
 	}
 }
+
+func ToCategoryModels(categoryEntities []*entities.Category) []*Category {
+	categoryModels := make([]*Category, len(categoryEntities))
+	for i, categoryEntity := range categoryEntities {
+		categoryModels[i] = ToCategoryModel(categoryEntity)
+	}
+	return categoryModels
+}
