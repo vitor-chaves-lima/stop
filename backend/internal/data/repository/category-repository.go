@@ -8,8 +8,8 @@ import (
 	"github.com/vitor-chaves-lima/stop/internal/data/entities"
 )
 
-// CategoryRepository defines the methods for interacting with category data.
-type CategoryRepository interface {
+// Category defines the methods for interacting with category data.
+type Category interface {
 	// Count returns the total number of categories in the repository.
 	Count(c context.Context) (int, *data.Error)
 

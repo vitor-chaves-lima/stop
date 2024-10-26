@@ -8,12 +8,15 @@ import (
 	"github.com/vitor-chaves-lima/stop/cmd/web-api/middleware"
 	"github.com/vitor-chaves-lima/stop/config"
 	"github.com/vitor-chaves-lima/stop/internal/data/database"
+	"github.com/vitor-chaves-lima/stop/internal/data/repository/mongodb"
+	"github.com/vitor-chaves-lima/stop/internal/logic/services"
 )
 
 var APIVersions = []string{"v1"}
 
 type Dependencies struct {
-	mongoDBManager *database.MongoDBManager
+	mongoDBManager  *database.MongoDBManager
+	categoryService *services.CategoryService
 }
 
 type APIControllers struct {
@@ -23,20 +26,23 @@ type APIControllers struct {
 
 func setupDependencies(appConfig *config.Config) *Dependencies {
 	mongoDbManager := database.NewMongoDBManager(context.Background(), appConfig.Database)
+	categoryRepository := mongodb.NewCategoryRepository(mongoDbManager)
+	categoryService := services.NewCategoryService(categoryRepository)
 
 	return &Dependencies{
-		mongoDBManager: mongoDbManager,
+		mongoDBManager:  mongoDbManager,
+		categoryService: categoryService,
 	}
 }
 
-func setupControllers() *APIControllers {
+func setupControllers(dependencies *Dependencies) *APIControllers {
 	openAPIDocuments, err := loadOpenAPIDocuments()
 	if err != nil {
 		panic(err)
 	}
 
 	docsController := controller.NewDocsController(openAPIDocuments)
-	gameController := controller.NewGameController()
+	gameController := controller.NewGameController(dependencies.categoryService)
 
 	apiControllers := &APIControllers{
 		docs: docsController,
@@ -68,7 +74,7 @@ func main() {
 	dependencies := setupDependencies(appConfig)
 	defer dependencies.mongoDBManager.Disconnect()
 
-	apiControllers := setupControllers()
+	apiControllers := setupControllers(dependencies)
 	setupRoutes(apiRouter, apiControllers)
 
 	err := r.Run()
